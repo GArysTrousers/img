@@ -1,84 +1,61 @@
-import { Select } from "@cliffy/prompt";
-import { tty } from "@cliffy/ansi/tty";
-import sharp from "sharp";
-import { parse } from "@std/path";
+import { Select, Confirm } from "@cliffy/prompt";
+import { Directory } from "./lib/directory.ts";
+import { ConversionOptions, convertImage } from "./lib/image.ts";
 
 const imageTypes = /(png|jpg|jpeg|webp|tif)$/gi;
 
 const production = false;
-const inputDir = production ? "." : "./input";
-let outputDir = production ? "." : "./output";
 
-const files = Deno.readDirSync(inputDir).toArray();
-const imageFiles = files.filter((v) => v.name.match(imageTypes) !== null);
-console.log("Image files found:", imageFiles.length);
+const options: ConversionOptions = {
+  inputDir: production ? "." : "./input",
+  outputDir: production ? "." : "./output",
+  type: await Select.prompt({
+    message: "Select output file type",
+    options: ["png", "jpeg", "webp"],
+  }),
+  size: await Select.prompt({
+    message: "Select output file size",
+    options: ["original", "75%", "50%", "25%"],
+  }),
+  quality: await Select.prompt({
+    message: "Select output file quality",
+    options: [
+      { name: "original", value: 100 },
+      { name: "90%", value: 90 },
+      { name: "80%", value: 80 },
+      { name: "70%", value: 70 },
+    ],
+  }),
+  recurse: await Select.prompt({
+    message: "Recurse through directories?",
+    options: [
+      { name: "yes", value: true },
+      { name: "no", value: false },
+    ],
+  }),
+  storage: await Select.prompt({
+    message: "What to do with files",
+    options: ["new sub folder", "replace", "same folder"],
+  }),
+};
 
-const convertToType = await Select.prompt({
-  message: "Select output file type",
-  options: ["png", "jpeg", "webp"],
-});
+const directory = new Directory(options.inputDir, imageTypes, options.recurse);
+const files = directory.getFilePaths();
 
-const reduceSize = await Select.prompt({
-  message: "Select output file size",
-  options: ["original", "75%", "50%", "25%"],
-});
+console.log(`Files Found: ${files.length}`);
 
-const quality = await Select.prompt({
-  message: "Select output file quality",
-  options: [
-    { name: "original", value: 100 },
-    { name: "90%", value: 90 },
-    { name: "80%", value: 80 },
-    { name: "70%", value: 70 },
-  ],
-});
+if (!(await Confirm.prompt("Convert files?"))) process.exit();
 
-const oldFiles = await Select.prompt({
-  message: "What to do with files",
-  options: ["new sub folder", "replace", "same folder"],
-});
-
-if (oldFiles === "new sub folder") {
-  outputDir = "./converted";
-  try {
-    Deno.lstatSync(outputDir);
-  } catch (e) {
-    if (!(e instanceof Deno.errors.NotFound)) {
-      Deno.mkdirSync(outputDir);
-    }
-  }
+if (options.storage === "new sub folder") {
+  options.outputDir += "/converted";
 }
 
-let startSize = 0;
-let endSize = 0;
+let count = 1;
 
-for (let i = 0; i < imageFiles.length; i++) {
-  const filename = parse(imageFiles[i].name);
-  console.log(
-    `[${i + 1}/${imageFiles.length}] ${filename.name.substring(0, 30)}...`
-  );
-  const newFile = sharp(`${inputDir}/${filename.base}`);
-  const meta = await newFile.metadata();
-  startSize += meta.size || 0;
-
-  if (convertToType === "png") newFile.png({ quality });
-  else if (convertToType === "jpeg") newFile.jpeg();
-  else if (convertToType === "webp") newFile.webp();
-  else throw Error("Unknown conversion type");
-
-  if (reduceSize === "75%") newFile.resize(Math.round(meta.width * 0.75));
-  else if (reduceSize === "50%") newFile.resize(Math.round(meta.width * 0.5));
-  else if (reduceSize === "25%") newFile.resize(Math.round(meta.width * 0.25));
-
-  await newFile.toFile(`./${outputDir}/${filename.name}.${convertToType}`);
-
-  endSize += (await newFile.metadata()).size || 0
-
-  if (oldFiles === "replace") Deno.removeSync(filename.base);
-
-  tty.cursorLeft().cursorDown().cursorUp(2);
+for (const file of files) {
+  console.log(`[${count++}/${files.length}] ${file.substring(0, 50)}...`);
+  await convertImage(file, options)
 }
+
 console.log();
 console.log("Finished!");
-console.log('Start:', startSize);
-console.log('End  :', endSize);
