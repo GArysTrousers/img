@@ -4,7 +4,9 @@ import { ConversionOptions, convertImage } from "./lib/image.ts";
 
 const imageTypes = /(png|jpg|jpeg|webp|tif)$/gi;
 
-const production = false;
+console.log(Deno.args);
+
+const production = true;
 
 const options: ConversionOptions = {
   inputDir: production ? "." : "./input",
