@@ -1,0 +1,38 @@
+{
+  "name": "img",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/GArysTrousers/img#readme",
+  "bugs": {
+    "url": "https://github.com/GArysTrousers/img/issues"
+  },
+  "bin": {
+    "img": "./build/main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GArysTrousers/img.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "main.ts",
+  "module": "esnext",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node --experimental-strip-types --disable-warning=ExperimentalWarning ./main.ts",
+    "build": "tsc -t es2022 -m nodenext --moduleResolution nodenext --allowSyntheticDefaultImports --outDir build ./src/main.ts",
+    "install": "npm link"
+  },
+  "dependencies": {
+    "inquirer": "^12.7.0",
+    "sharp": "^0.34.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.10",
+    "typescript": "^5.8.3"
+  }
+}

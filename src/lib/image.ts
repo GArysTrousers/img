@@ -1,5 +1,6 @@
-import { parse } from "@std/path";
 import sharp from "sharp";
+import { parse } from "node:path";
+import { accessSync, mkdirSync, rmSync } from "node:fs";
 
 export interface ConversionOptions {
   inputDir: string;
@@ -32,16 +33,16 @@ export async function convertImage(path: string, options: ConversionOptions) {
   mkdirIfNotExist(outputDir);
   await newFile.toFile(outputFile);
 
-  if (options.storage === "replace") Deno.removeSync(path);
+  if (options.storage === "replace") rmSync(path);
   return outputFile;
 }
 
 export function mkdirIfNotExist(dir: string) {
   try {
-    Deno.lstatSync(dir);
+    accessSync(dir);
   } catch (e) {
-    if (e instanceof Deno.errors.NotFound) {
-      Deno.mkdirSync(dir, { recursive: true });
+    if (e instanceof Error) {
+      mkdirSync(dir, { recursive: true });
     }
   }
 }
