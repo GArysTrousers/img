@@ -80,7 +80,12 @@ const production = true;
 
   for (const file of files) {
     console.log(`[${count++}/${files.length}] ${file.substring(0, 50)}...`);
-    await convertImage(file, options);
+    try {
+      await convertImage(file, options);
+      
+    } catch (e) {
+      console.log("Error Converting Image");
+    }
   }
 
   console.log();

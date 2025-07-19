@@ -23,13 +23,13 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node --experimental-strip-types --disable-warning=ExperimentalWarning ./main.ts",
+    "dev": "node --experimental-strip-types --disable-warning=ExperimentalWarning ./src/main.ts",
     "build": "tsc -t es2022 -m nodenext --moduleResolution nodenext --allowSyntheticDefaultImports --outDir build ./src/main.ts",
-    "install": "npm link"
+    "wat-install": "npm link"
   },
   "dependencies": {
     "inquirer": "^12.7.0",
-    "sharp": "^0.34.2"
+    "sharp": "^0.34.3"
   },
   "devDependencies": {
     "@types/node": "^24.0.10",
